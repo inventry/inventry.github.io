@@ -1,71 +1,169 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
+<style>
+body {
+    background: #000;
+    overflow: hidden;
+}
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
+canvas {
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
 
-    <title>Inventry</title>
+#c1 {
+    opacity: 0;
+}
 
-    <!-- Bootstrap Core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+#c2 {
+    background: #000;
+}
 
-    <!-- Custom CSS -->
-    <link href="css/stylish-portfolio.css" rel="stylesheet">
-
-    <!-- Custom Fonts -->
-    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
+</style>
 
 </head>
-
 <body>
+<img style="position: absolute; 
+                  top: 50%;left: 50%;width: 330px;height:150px;margin-top:-75px;margin-left: -165px;
+                  z-index: 2; " src="inventry_logo.png">
+<div style="position: relative;">
+    
 
-    <!-- Navigation -->
-    <a id="menu-toggle" href="#" class="btn btn-dark btn-lg toggle hide"><i class="fa fa-bars"></i></a>
-    <nav id="sidebar-wrapper">
-        <ul class="sidebar-nav">
-            <a id="menu-close" href="#" class="btn btn-light btn-lg pull-right toggle"><i class="fa fa-times"></i></a>
-            <li class="sidebar-brand">
-                <a href="#top" onclick=$("#menu-close").click();>Start Bootstrap</a>
-            </li>
-            <li>
-                <a href="#top" onclick=$("#menu-close").click();>Home</a>
-            </li>
-            <li>
-                <a href="#about" onclick=$("#menu-close").click();>About</a>
-            </li>
-            <li>
-                <a href="#services" onclick=$("#menu-close").click();>Services</a>
-            </li>
-            <li>
-                <a href="#portfolio" onclick=$("#menu-close").click();>Portfolio</a>
-            </li>
-            <li>
-                <a href="#contact" onclick=$("#menu-close").click();>Contact</a>
-            </li>
-        </ul>
-    </nav>
+    <canvas style="position:absolute;" id="c1"></canvas>
+    <canvas style="position:absolute;" id="c2"></canvas>
+</div>
 
-    <!-- Header -->
-    <header id="top" class="header">
-        <div class="text-vertical-center">
-            <h1>inventry</h1>
-            <h3>coming soon</h3>
-        </div>
-    </header>
 
+
+<script>
+var c1 = document.getElementById( 'c1' ),
+    ctx1 = c1.getContext( '2d' ),
+    c2 = document.getElementById( 'c2' ),
+    ctx2 = c2.getContext( '2d' ),
+    twopi = Math.PI * 2,
+    parts = [],
+    sizeBase,
+    cw,
+    opt,
+    hue,
+    count;
+
+function rand( min, max ) {
+    return Math.random() * ( max - min ) + min;
+}
+
+function hsla( h, s, l, a ) {
+    return 'hsla(' + h + ',' + s + '%,' + l + '%,' + a + ')';
+}
+    
+function create() {
+    sizeBase = cw + ch;
+    count = Math.floor( sizeBase * 0.3 ),
+    hue = rand( 0, 360 ),
+    opt = {
+        radiusMin: 1,
+        radiusMax: sizeBase * 0.04,
+        blurMin: 10,
+        blurMax: sizeBase * 0.04,
+        hueMin: hue,
+        hueMax: hue + 100,
+        saturationMin: 10,
+        saturationMax: 70,
+        lightnessMin: 20,
+        lightnessMax: 50,
+        alphaMin: 0.1,
+        alphaMax: 0.5
+    }
+    ctx1.clearRect( 0, 0, cw, ch );
+    ctx1.globalCompositeOperation = 'lighter';
+    while( count-- ) {
+        var radius = rand( opt.radiusMin, opt.radiusMax ),
+            blur = rand( opt.blurMin, opt.blurMax ),
+            x = rand( 0, cw ),
+            y = rand( 0, ch ),
+            hue = rand(opt.hueMin, opt.hueMax ),
+            saturation = rand( opt.saturationMin, opt.saturationMax ),
+            lightness = rand(  opt.lightnessMin, opt.lightnessMax ),
+            alpha = rand( opt.alphaMin, opt.alphaMax );
+
+        ctx1.shadowColor = hsla( hue, saturation, lightness, alpha );
+        ctx1.shadowBlur = blur;
+        ctx1.beginPath();
+        ctx1.arc( x, y, radius, 0, twopi );
+        ctx1.closePath();
+        ctx1.fill();
+    }
+    
+    parts.length = 0;
+    for( var i = 0; i < Math.floor( ( cw + ch ) * 0.03 ); i++ ) {
+        parts.push({
+            radius: rand( 1, sizeBase * 0.03 ),
+            x: rand( 0, cw ),
+            y: rand( 0, ch ),
+            angle: rand( 0, twopi ),
+            vel: rand( 0.1, 0.5 ),
+            tick: rand( 0, 10000 )
+        });
+    }
+}
+
+function init() {
+    resize();
+    create();
+    loop();
+}
+
+function loop() {
+    requestAnimationFrame( loop );
+    
+    ctx2.clearRect( 0, 0, cw, ch );
+    ctx2.globalCompositeOperation = 'source-over';
+    ctx2.shadowBlur = 0;
+    ctx2.drawImage( c1, 0, 0 );
+    ctx2.globalCompositeOperation = 'lighter';
+    
+    var i = parts.length;
+    ctx2.shadowBlur = 15;
+    ctx2.shadowColor = '#fff';
+    while( i-- ) {
+        var part = parts[ i ];
+        
+        part.x += Math.cos( part.angle ) * part.vel;
+        part.y += Math.sin( part.angle ) * part.vel;
+        part.angle += rand( -0.05, 0.05 );
+        
+        ctx2.beginPath();
+        ctx2.arc( part.x, part.y, part.radius, 0, twopi );
+        ctx2.fillStyle = hsla( 0, 0, 100, 0.075 + Math.cos( part.tick * 0.02 ) * 0.05 );
+        ctx2.fill();
+        
+        if( part.x - part.radius > cw ) { part.x = -part.radius }
+        if( part.x + part.radius < 0 )  { part.x = cw + part.radius }
+        if( part.y - part.radius > ch ) { part.y = -part.radius }
+        if( part.y + part.radius < 0 )  { part.y = ch + part.radius }
+        
+        part.tick++;
+    }
+}
+
+function resize() {
+    cw = c1.width = c2.width = window.innerWidth,
+    ch = c1.height = c2.height = window.innerHeight;
+    create();
+}
+
+function click() {
+    create()
+}
+
+window.addEventListener( 'resize', resize );
+window.addEventListener( 'click', click );
+
+init();
+</script>
 </body>
-
 </html>
